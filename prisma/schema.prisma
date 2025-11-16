@@ -1,0 +1,208 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// better-auth required models
+model user {
+  id            String   @id @default(cuid())
+  name          String?
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  account         account[]
+  session         session[]
+  clientProfile   ClientProfile?
+  engineerProfile EngineerProfile?
+  adminProfile    AdminProfile?
+
+  @@map("user")
+}
+
+model session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([userId, providerId, accountId])
+  @@map("account")
+}
+
+model verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
+  @@map("verification")
+}
+
+model ClientProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   @default("CLIENT")
+  bio       String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings Booking[]
+
+  @@map("client_profiles")
+}
+
+model EngineerProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         String   @default("ENGINEER")
+  bio          String?
+  specialties  String   @default("") // comma-separated
+  location     String? // added city/state location
+  hourlyRate   Float    @default(0)
+  yearsOfExp   Int      @default(0)
+  education    String? // academic background
+  profileImage String? // profile photo URL
+  isVerified   Boolean  @default(false)
+  phone        String?
+  rating       Float    @default(0) // average rating
+  totalReviews Int      @default(0) // number of reviews
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  bookings     Booking[]
+  availability Availability[]
+  projects     Project[] // previous projects
+  activities   Activity[] // Adding activities (services with specific prices)
+
+  @@map("engineer_profiles")
+}
+
+model AdminProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admin_profiles")
+}
+
+model Availability {
+  id          String          @id @default(cuid())
+  engineerId  String
+  engineer    EngineerProfile @relation(fields: [engineerId], references: [id], onDelete: Cascade)
+  startTime   DateTime
+  endTime     DateTime
+  isAvailable Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  bookings Booking[] // link to bookings made during this slot
+
+  @@index([engineerId])
+  @@map("availabilities")
+}
+
+model Booking {
+  id             String          @id @default(cuid())
+  clientId       String
+  client         ClientProfile   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  engineerId     String
+  engineer       EngineerProfile @relation(fields: [engineerId], references: [id], onDelete: Cascade)
+  availabilityId String? // link to availability slot
+  availability   Availability?   @relation(fields: [availabilityId], references: [id], onDelete: SetNull)
+  status         BookingStatus   @default(PENDING)
+  startTime      DateTime
+  endTime        DateTime
+  description    String?
+  amount         Float
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([clientId])
+  @@index([engineerId])
+  @@map("bookings")
+}
+
+model Project {
+  id           String          @id @default(cuid())
+  engineerId   String
+  engineer     EngineerProfile @relation(fields: [engineerId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  imageUrl     String?
+  technologies String          @default("") // comma-separated
+  completedAt  DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([engineerId])
+  @@map("projects")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  PAYMENT_AWAITING
+  PAYMENT_APPROVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Activity {
+  id             String          @id @default(cuid())
+  engineerId     String
+  engineer       EngineerProfile @relation(fields: [engineerId], references: [id], onDelete: Cascade)
+  title          String // e.g., "Consultoria de Estrutura"
+  description    String?
+  price          Float // specific price for this activity
+  estimatedHours Float           @default(1) // estimated duration
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([engineerId])
+  @@map("activities")
+}
