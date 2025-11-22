@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from 'lucide-react';
+import { useToast } from "@/app/hooks/use-toast";
 
 interface ActivityFormProps {
   engineerId: string;

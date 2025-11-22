@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { redirect } from 'next/navigation';
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import EngineerOverview from "@/components/engineer-dashboard/engineer-overview";
 import BookingList from "@/components/engineer-dashboard/booking-list";
 import { BarChart3, Calendar, Settings, LogOut, FileText } from 'lucide-react';
+import SignoutButton from "@/components/SignoutButton";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export default async function EngineerDashboardPage() {
-  const session = await getSession();
+   const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session?.user?.id) {
     redirect("/auth/login");
@@ -63,12 +65,7 @@ export default async function EngineerDashboardPage() {
                   Agenda
                 </Button>
               </Link>
-              <Link href="/api/auth/sign-out">
-                <Button variant="outline" size="sm">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sair
-                </Button>
-              </Link>
+              <SignoutButton />
             </nav>
           </div>
         </div>

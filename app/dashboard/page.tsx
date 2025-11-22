@@ -6,6 +6,7 @@ import ClientDashboard from "@/components/dashboard/client-dashboard";
 import { Search, LogOut } from 'lucide-react';
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import SignoutButton from "@/components/SignoutButton";
 
 export default async function DashboardPage() {
    const session = await auth.api.getSession({ headers: await headers() });
@@ -51,12 +52,7 @@ export default async function DashboardPage() {
                   Buscar Profissionais
                 </Button>
               </Link>
-              <Link href="/api/auth/sign-out">
-                <Button variant="outline" size="sm">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sair
-                </Button>
-              </Link>
+              <SignoutButton />
             </nav>
           </div>
         </div>

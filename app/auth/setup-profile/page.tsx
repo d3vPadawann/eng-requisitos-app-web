@@ -1,37 +1,39 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { useRouter } from 'next/navigation';
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from 'lucide-react';
-import { useToast } from "@/app/hooks/use-toast";
+import type React from "react"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Loader2 } from "lucide-react"
+import { useToast } from "@/app/hooks/use-toast"
 
 export default function SetupProfilePage() {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const router = useRouter()
+  const { toast } = useToast()
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     userType: "client",
     bio: "",
     phone: "",
-  });
+    specialties: "", // Added for engineers
+    location: "", // Added for engineers
+  })
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
+    e.preventDefault()
+    setLoading(true)
 
     try {
       const response = await fetch("/api/profile/setup", {
@@ -40,29 +42,30 @@ export default function SetupProfilePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error("Erro ao configurar perfil");
+        throw new Error("Erro ao configurar perfil")
       }
 
       toast({
         title: "Perfil Criado!",
         description: "Sua conta foi configurada com sucesso.",
-      });
+      })
 
-      router.push("/dashboard");
+      router.push("/auth/check-role")
     } catch (error) {
       toast({
         title: "Erro",
-        description:
-          error instanceof Error ? error.message : "Erro ao configurar perfil",
+        description: error instanceof Error ? error.message : "Erro ao configurar perfil",
         variant: "destructive",
-      });
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
+  const isEngineer = formData.userType === "engineer"
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -82,12 +85,13 @@ export default function SetupProfilePage() {
               className="w-full px-3 py-2 border rounded-lg"
             >
               <option value="client">Cliente</option>
+              <option value="engineer">Engenheiro</option>
             </select>
           </div>
 
           <div>
             <label htmlFor="bio" className="block text-sm font-semibold mb-2">
-              Sobre Você (Opcional)
+              Sobre Você
             </label>
             <Textarea
               id="bio"
@@ -101,7 +105,7 @@ export default function SetupProfilePage() {
 
           <div>
             <label htmlFor="phone" className="block text-sm font-semibold mb-2">
-              Telefone (Opcional)
+              Telefone
             </label>
             <Input
               id="phone"
@@ -113,17 +117,43 @@ export default function SetupProfilePage() {
             />
           </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-            size="lg"
-          >
+          {isEngineer && (
+            <>
+              <div>
+                <label htmlFor="specialties" className="block text-sm font-semibold mb-2">
+                  Especialidades (separadas por vírgula)
+                </label>
+                <Textarea
+                  id="specialties"
+                  name="specialties"
+                  placeholder="Ex: Estrutura, Hidráulica, Elétrica"
+                  value={formData.specialties}
+                  onChange={handleChange}
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="location" className="block text-sm font-semibold mb-2">
+                  Localização
+                </label>
+                <Input
+                  id="location"
+                  name="location"
+                  placeholder="Cidade, Estado"
+                  value={formData.location}
+                  onChange={handleChange}
+                />
+              </div>
+            </>
+          )}
+
+          <Button type="submit" className="w-full" disabled={loading} size="lg">
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Continuar
           </Button>
         </form>
       </Card>
     </div>
-  );
+  )
 }

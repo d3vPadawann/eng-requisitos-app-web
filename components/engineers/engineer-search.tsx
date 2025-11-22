@@ -1,100 +1,111 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, MapPin, Star, Award } from 'lucide-react';
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Loader2, MapPin, Star, Award, Briefcase } from "lucide-react"
+
+interface Activity {
+  id: string
+  title: string
+  price: number
+}
+
+interface Project {
+  id: string
+  title: string
+  description: string | null
+  imageUrl: string | null
+}
 
 interface Engineer {
-  id: string;
-  userId: string;
-  bio: string | null;
-  specialties: string;
-  location: string | null;
-  hourlyRate: number;
-  yearsOfExp: number;
-  profileImage: string | null;
-  isVerified: boolean;
-  rating: number;
-  totalReviews: number;
+  id: string
+  userId: string
+  bio: string | null
+  specialties: string
+  location: string | null
+  hourlyRate: number
+  yearsOfExp: number
+  profileImage: string | null
+  isVerified: boolean
+  rating: number
+  totalReviews: number
   user: {
-    name: string | null;
-  };
+    name: string | null
+  }
+  activities: Activity[] // added activities array
+  projects: Project[] // added projects array
 }
 
 export default function EngineerSearch() {
-  const [engineers, setEngineers] = useState<Engineer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSpecialty, setSelectedSpecialty] = useState("all");
-  const [selectedLocation, setSelectedLocation] = useState("all");
-  const [specialties, setSpecialties] = useState<string[]>([]);
-  const [locations, setLocations] = useState<string[]>([]);
+  const [engineers, setEngineers] = useState<Engineer[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedSpecialty, setSelectedSpecialty] = useState("all")
+  const [selectedLocation, setSelectedLocation] = useState("all")
+  const [specialties, setSpecialties] = useState<string[]>([])
+  const [locations, setLocations] = useState<string[]>([])
 
   // Fetch engineers on component mount
   useEffect(() => {
     const fetchEngineers = async () => {
       try {
-        const response = await fetch("/api/engineers");
-        const data = await response.json();
-        
+        const response = await fetch("/api/engineers")
+        const data = await response.json()
+
         if (data.engineers) {
-          setEngineers(data.engineers);
-          
+          setEngineers(data.engineers)
+
           // Extract unique specialties and locations
-          const uniqueSpecialties = new Set<string>();
-          const uniqueLocations = new Set<string>();
-          
+          const uniqueSpecialties = new Set<string>()
+          const uniqueLocations = new Set<string>()
+
           data.engineers.forEach((eng: Engineer) => {
             if (eng.specialties) {
-              eng.specialties.split(",").forEach(s => uniqueSpecialties.add(s.trim()));
+              eng.specialties.split(",").forEach((s) => uniqueSpecialties.add(s.trim()))
             }
             if (eng.location) {
-              uniqueLocations.add(eng.location);
+              uniqueLocations.add(eng.location)
             }
-          });
-          
-          setSpecialties(Array.from(uniqueSpecialties).sort());
-          setLocations(Array.from(uniqueLocations).sort());
+          })
+
+          setSpecialties(Array.from(uniqueSpecialties).sort())
+          setLocations(Array.from(uniqueLocations).sort())
         }
       } catch (error) {
-        console.error("Error fetching engineers:", error);
+        console.error("Error fetching engineers:", error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchEngineers();
-  }, []);
+    fetchEngineers()
+  }, [])
 
   // Filter engineers based on search criteria
-  const filteredEngineers = engineers.filter(engineer => {
-    const matchesSearch = 
+  const filteredEngineers = engineers.filter((engineer) => {
+    const matchesSearch =
       engineer.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       engineer.bio?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      engineer.specialties.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesSpecialty = 
-      selectedSpecialty === "all" ||
-      engineer.specialties.includes(selectedSpecialty);
-    
-    const matchesLocation = 
-      selectedLocation === "all" ||
-      engineer.location === selectedLocation;
-    
-    return matchesSearch && matchesSpecialty && matchesLocation;
-  });
+      engineer.specialties.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesSpecialty = selectedSpecialty === "all" || engineer.specialties.includes(selectedSpecialty)
+
+    const matchesLocation = selectedLocation === "all" || engineer.location === selectedLocation
+
+    return matchesSearch && matchesSpecialty && matchesLocation
+  })
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
-    );
+    )
   }
 
   return (
@@ -107,15 +118,17 @@ export default function EngineerSearch() {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="col-span-1 md:col-span-1"
         />
-        
+
         <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
           <SelectTrigger>
             <SelectValue placeholder="Especialidade" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as Especialidades</SelectItem>
-            {specialties.map(spec => (
-              <SelectItem key={spec} value={spec}>{spec}</SelectItem>
+            {specialties.map((spec) => (
+              <SelectItem key={spec} value={spec}>
+                {spec}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -126,8 +139,10 @@ export default function EngineerSearch() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as Localidades</SelectItem>
-            {locations.map(loc => (
-              <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+            {locations.map((loc) => (
+              <SelectItem key={loc} value={loc}>
+                {loc}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -135,64 +150,64 @@ export default function EngineerSearch() {
 
       {/* Results */}
       <div className="text-sm text-muted-foreground">
-        {filteredEngineers.length} profissional{filteredEngineers.length !== 1 ? "is" : ""} encontrado{filteredEngineers.length !== 1 ? "s" : ""}
+        {filteredEngineers.length} profissional{filteredEngineers.length !== 1 ? "is" : ""} encontrado
+        {filteredEngineers.length !== 1 ? "s" : ""}
       </div>
 
       {/* Engineers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredEngineers.map(engineer => (
-          <Card key={engineer.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+        {filteredEngineers.map((engineer) => (
+          <Card key={engineer.id} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
             {/* Profile Image */}
-            <div className="h-48 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+            <div className="h-48 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center flex-shrink-0">
               {engineer.profileImage ? (
-                <img 
-                  src={engineer.profileImage || "/placeholder.svg"} 
-                  alt={engineer.user?.name || "Engineer"} 
+                <img
+                  src={engineer.profileImage || "/placeholder.svg"}
+                  alt={engineer.user?.name || "Engineer"}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="text-4xl font-bold text-primary/40">
-                  {engineer.user?.name?.charAt(0) || "E"}
-                </div>
+                <div className="text-4xl font-bold text-primary/40">{engineer.user?.name?.charAt(0) || "E"}</div>
               )}
             </div>
 
             {/* Content */}
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-3 flex-1 flex flex-col">
               {/* Name and Verification */}
               <div className="flex items-start justify-between">
                 <h3 className="font-bold text-lg">{engineer.user?.name || "Engenheiro"}</h3>
-                {engineer.isVerified && (
-                  <Award className="w-5 h-5 text-green-500" />
-                )}
+                {engineer.isVerified && <Award className="w-5 h-5 text-green-500 flex-shrink-0" />}
               </div>
 
               {/* Location */}
               {engineer.location && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="w-4 h-4" />
+                  <MapPin className="w-4 h-4 flex-shrink-0" />
                   {engineer.location}
                 </div>
               )}
 
               {/* Rating */}
               <div className="flex items-center gap-2 text-sm">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 flex-shrink-0" />
                 <span className="font-semibold">{engineer.rating.toFixed(1)}</span>
                 <span className="text-muted-foreground">({engineer.totalReviews} avaliações)</span>
               </div>
 
               {/* Experience and Rate */}
               <div className="flex justify-between text-sm text-muted-foreground">
-                <span>{engineer.yearsOfExp} anos de experiência</span>
+                <span>{engineer.yearsOfExp} anos de exp.</span>
                 <span className="font-bold text-foreground">R${engineer.hourlyRate}/h</span>
               </div>
+
+              {/* Bio */}
+              {engineer.bio && <p className="text-sm text-muted-foreground line-clamp-2">{engineer.bio}</p>}
 
               {/* Specialties */}
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-muted-foreground">Especialidades:</p>
                 <div className="flex flex-wrap gap-1">
-                  {engineer.specialties.split(",").map(spec => (
+                  {engineer.specialties.split(",").map((spec) => (
                     <Badge key={spec.trim()} variant="secondary" className="text-xs">
                       {spec.trim()}
                     </Badge>
@@ -200,16 +215,31 @@ export default function EngineerSearch() {
                 </div>
               </div>
 
-              {/* Bio */}
-              {engineer.bio && (
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {engineer.bio}
-                </p>
+              {/* Activities (Services with specific prices) */}
+              {engineer.activities && engineer.activities.length > 0 && (
+                <div className="space-y-2 pt-2 border-t">
+                  <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                    <Briefcase className="w-3 h-3" /> Serviços:
+                  </p>
+                  <div className="space-y-1">
+                    {engineer.activities.slice(0, 3).map((activity) => (
+                      <div key={activity.id} className="text-xs flex justify-between items-center">
+                        <span className="text-muted-foreground">{activity.title}</span>
+                        <span className="font-semibold text-primary">R${activity.price.toFixed(2)}</span>
+                      </div>
+                    ))}
+                    {engineer.activities.length > 3 && (
+                      <div className="text-xs text-muted-foreground italic">
+                        +{engineer.activities.length - 3} serviço{engineer.activities.length - 3 !== 1 ? "s" : ""}
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
 
               {/* View Profile Button */}
-              <Link href={`/dashboard/engineers/${engineer.id}`}>
-                <Button className="w-full mt-4">Ver Perfil Completo</Button>
+              <Link href={`/dashboard/engineers/${engineer.id}`} className="mt-auto pt-2">
+                <Button className="w-full">Ver Perfil Completo</Button>
               </Link>
             </div>
           </Card>
@@ -225,5 +255,5 @@ export default function EngineerSearch() {
         </Card>
       )}
     </div>
-  );
+  )
 }

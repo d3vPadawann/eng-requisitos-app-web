@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ActivityForm from "./activity-form";
 import { Trash2, Edit2, Plus } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/app/hooks/use-toast";
 
 interface ActivitiesManagerProps {
   engineerId: string;

@@ -1,13 +1,14 @@
 import { redirect } from 'next/navigation';
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth-client";
 import ScheduleManager from "@/components/engineer-dashboard/schedule-manager";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from 'lucide-react';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 
 export default async function SchedulePage() {
-  const session = await getSession();
+  const session = await auth.api.getSession({headers: await headers()});
 
   if (!session?.user?.id) {
     redirect("/auth/login");
